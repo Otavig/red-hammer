@@ -22,7 +22,7 @@
 
 #define BRANCO 1
 
-int veloc = 180;
+int veloc = 200;
 int verde = 0;
 
 unsigned long ultimaDetecaoVerde = 0;
@@ -76,7 +76,7 @@ void direita(){
     digitalWrite(in4, LOW);
 
     analogWrite(motorENA, 200);
-    analogWrite(motorENB, (veloc-100));
+    analogWrite(motorENB, (veloc-80));
 }
 
 void esquerda(){
@@ -85,7 +85,7 @@ void esquerda(){
     digitalWrite(in3, LOW);
     digitalWrite(in4, HIGH);
 
-    analogWrite(motorENA, (veloc-100));
+    analogWrite(motorENA, (veloc-80));
     analogWrite(motorENB, 200);
 }
 
@@ -160,10 +160,12 @@ void autoTrack(){
   }
   while(s2_ != BRANCO){
     direita();
+    delay(5);
     break;
   }
   while(s4_ != BRANCO){
     esquerda();
+    delay(5);
     break;
   }
 
@@ -210,23 +212,23 @@ void loop(){
     digitalWrite(in3, LOW);
     digitalWrite(in4, LOW);
 
-    // Cor
-    leiturasCores(verde, pinS0_e, pinS1_e, pinS2_e, pinS3_e, pinOUT_e);
-    unsigned long tempoAtual = millis();
+    // // Cor
+    // leiturasCores(verde, pinS0_e, pinS1_e, pinS2_e, pinS3_e, pinOUT_e);
+    // unsigned long tempoAtual = millis();
     
-    if (verde > 0 && tempoAtual - ultimaDetecaoVerde >= intervaloDetec) {
-      frente();
-      delay(200);
-      parar();
-      delay(2000);
-      parar();
-      delay(1000);
-      dCurva();
-      delay(600);
-      ultimaDetecaoVerde = tempoAtual;
-    } else if (verde == 0) {
-      Serial.println("Verde não encontrado");
-    }
+    // if (verde > 0 && tempoAtual - ultimaDetecaoVerde >= intervaloDetec) {
+    //   frente();
+    //   delay(200);
+    //   parar();
+    //   delay(2000);
+    //   parar();
+    //   delay(1000);
+    //   dCurva();
+    //   delay(600);
+    //   ultimaDetecaoVerde = tempoAtual;
+    // } else if (verde == 0) {
+    //   Serial.println("Verde não encontrado");
+    // }
 
     // Linha
     autoTrack();
