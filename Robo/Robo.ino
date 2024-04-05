@@ -1,21 +1,4 @@
-#include "Ultrasonic.h" //INCLUSÃO DA BIBLIOTECA NECESSÁRIA PARA FUNCIONAMENTO DO CÓDIGO
-
-// // echos
-// const int eFrente = 7; // Recebe 
-
-// // triggers
-// const int tFrente = 6; // Envia
-
-// Ultrasonic ultrasonic(tFrente,eFrente); //INICIALIZANDO OS PINOS DO ARDUINO
-
-// Sensores de cores
-int verde = 0;
-int verde2 = 0;
-
-unsigned long ultimaDetecaoVerde = 0;
-unsigned long intervaloDetecao = 2000; 
-
-// Motores
+// motores
 #define motorENA 18
 #define motorENB 16
 #define in1 19
@@ -23,69 +6,81 @@ unsigned long intervaloDetecao = 2000;
 #define in3 15
 #define in4 14
 
-// Sensores de reflatancia
-#define mED A12 // meio extrema direita
-#define mEE A15 // meio extrema esquerda
-#define mE A14 // meio esquerda
-#define mD  A11 // meio direita
-#define meio A13 // meio
+// Sensores de refletância
+#define s5 53
+#define s4 52
+#define s3 51
+#define s2 50
+#define s1 49
+
+//Sensor de COR esquerdo
+#define pinS0_e A6
+#define pinS1_e A5
+#define pinS2_e A14
+#define pinS3_e A15
+#define pinOUT_e A13
+
+//Sensor de COR direito
+#define pinS0_d A9
+#define pinS1_d A8
+#define pinS2_d A10
+#define pinS3_d A12
+#define pinOUT_d A11
 
 #define BRANCO 1
 
-// Especificações 
-#define velocidade 70
+// Sensor de cor Armazenamento
+int vermelho = 0;
+int verde = 0;
+int azul = 0;
 
-#define velocVirar 120
+// Verdes 
+int verde_esquerdo = 0;
+int verde_direito = 0;
+
+int veloc = 200;
+
+void configurarPinosSensor(int pinS0, int pinS1, int pinS2, int pinS3, int pinOUT) {
+  pinMode(pinS0, OUTPUT);
+  pinMode(pinS1, OUTPUT);
+  pinMode(pinS2, OUTPUT);
+  pinMode(pinS3, OUTPUT);
+  pinMode(pinOUT, INPUT);
+
+  digitalWrite(pinS0, HIGH);
+  digitalWrite(pinS1, LOW);
+}
 
 void setup(){
-    Serial.begin(9600);
-    
-    // Configurando motores
-    pinMode(in1, OUTPUT);
-    pinMode(in2, OUTPUT);
-    pinMode(in3, OUTPUT);
-    pinMode(in4, OUTPUT);
+  Serial.begin(9600);
 
-    // // Iniciar motores como 0
-    // digitalWrite(in1, LOW);
-    // digitalWrite(in2, LOW);
-    // digitalWrite(in3, LOW);
-    // digitalWrite(in4, LOW);
+  // Configurar pinos dos sensores de refletância
+  pinMode(s1, INPUT);
+  pinMode(s2, INPUT);
+  pinMode(s3, INPUT);
+  pinMode(s4, INPUT);
+  pinMode(s5, INPUT);
 
-    // configurarPinosSensor(PINO_SENSOR_S0, PINO_SENSOR_S1, PINO_SENSOR_S2, PINO_SENSOR_S3, PINO_SENSOR_OUT);
-    // configurarPinosSensor(PINO_SENSOR_S0_2, PINO_SENSOR_S1_2, PINO_SENSOR_S2_2, PINO_SENSOR_S3_2, PINO_SENSOR_OUT_2);
-}   
+  // Configurando motores
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(in3, OUTPUT);
+  pinMode(in4, OUTPUT);
 
-// void hcsr04(int trigPin){
-//   digitalWrite(trigPin, LOW);
-//   delayMicroseconds(2);
-//   digitalWrite(trigPin, HIGH);
-//   delayMicroseconds(10);
-//   digitalWrite(trigPin, LOW);
-//   distancia = (ultrasonic.Ranging(CM)); //VARIÁVEL GLOBAL RECEBE O VALOR DA DISTÂNCIA MEDIDA
-//   result = String(distancia);
-//   delay(500);
-// }
+  // Sensor Cor
+  // configurarPinosSensor(pinS0_e, pinS1_e, pinS2_e, pinS3_e, pinOUT_e);
+  // configurarPinosSensor(pinS0_d, pinS1_d, pinS2_d, pinS3_d, pinOUT_d);
+}
 
-// void desvioFrontal(){
-//   String resultado = hcsr04(tFrente);
-//   if(resultado == 8){
-//     tras();
-//     delay(300);
-//     curva90Direita();
-//     delay(690);
-//   }
-//   return
-// }
 
 void frente(){
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, LOW);
-    digitalWrite(in3, HIGH);
-    digitalWrite(in4, LOW);
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, HIGH);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
 
-    analogWrite(motorENA, velocidade);
-    analogWrite(motorENB, velocidade);
+    analogWrite(motorENA, veloc);
+    analogWrite(motorENB, veloc);
 }
 
 void direita(){
@@ -94,148 +89,153 @@ void direita(){
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
 
-    analogWrite(motorENA, 0);
-    analogWrite(motorENB, velocVirar);
+    analogWrite(motorENA, 200);
+    analogWrite(motorENB, (veloc-80));
 }
 
 void esquerda(){
-     digitalWrite(in1, HIGH);
-     digitalWrite(in2, LOW);
-     digitalWrite(in3, LOW);
-     digitalWrite(in4, HIGH);
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
 
-     analogWrite(motorENA, velocVirar);
-     analogWrite(motorENB, 0);
+    analogWrite(motorENA, (veloc-80));
+    analogWrite(motorENB, 200);
 }
 
-void curva90Direita(){
+void eCurva(){
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
+
+    analogWrite(motorENA, (veloc+75));
+    analogWrite(motorENB, (veloc+75));
+}
+
+void dCurva(){
     digitalWrite(in1, LOW);
     digitalWrite(in2, HIGH);
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
 
-    analogWrite(motorENA, velocVirar);
-    analogWrite(motorENB, velocVirar);
+    analogWrite(motorENA, (veloc+75));
+    analogWrite(motorENB, (veloc+75));
 }
 
-void curva90Esquerda(){
-     digitalWrite(in1, HIGH);
-     digitalWrite(in2, LOW);
-     digitalWrite(in3, LOW);
-     digitalWrite(in4, HIGH);
-
-     analogWrite(motorENA, velocVirar);
-     analogWrite(motorENB, velocVirar);
-}
-
-void tras(){
+void parar(){
     digitalWrite(in1, LOW);
-    digitalWrite(in2, HIGH);
-
+    digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
-    digitalWrite(in4, HIGH);
-
-    analogWrite(motorENA, velocidade);
-    analogWrite(motorENB, velocidade);
+    digitalWrite(in4, LOW);
 }
 
-void pararRobo(){
+void tras() {
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
+
+    analogWrite(motorENA, 180);
+    analogWrite(motorENB, 180);
+}
+
+
+void leiturasCores(int &v, int pinS0, int pinS1, int pinS2, int pinS3, int pinOUT){
+}
+
+void autoTrack(){
+    // Linha
+      int s5_ = digitalRead(s5);
+      int s4_ = digitalRead(s4);
+      int s3_ = digitalRead(s3);
+      int s2_ = digitalRead(s2);
+      int s1_ = digitalRead(s1);
+
+      while(s3_ != BRANCO){
+        frente();
+        break;
+      }
+      while(s2_ != BRANCO){
+        direita();
+        delay(5);
+        break;
+      }
+      while(s4_ != BRANCO){
+        esquerda();
+        delay(5);
+        break;
+      }
+
+      while(s2_ == BRANCO && s3_ == BRANCO && s4_ == BRANCO){
+        frente();
+        break;
+      }
+
+      //Encruzilhada
+      while(s1_ != BRANCO && s5_ != BRANCO){
+        frente();
+        break;
+      }
+
+    // if(s1_ != BRANCO){
+
+    // }
+
+    // if(s5_ != BRANCO){
+
+    // }
+
     digitalWrite(in1, LOW);
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
     digitalWrite(in4, LOW);
 
-    analogWrite(motorENA, 0);
-    analogWrite(motorENB, 0);
-}
-
-void autoTrack(){
-  // Sensores
-  int valorMeio = analogRead(meio);
-  int valorMeioE = analogRead(mE);
-  int valorMeioD = analogRead(mD);
-
-  int valorExtremaE = analogRead(mEE); 
-  int valorExtremaD = analogRead(mED);
-
-
-  while(valorMeio != BRANCO){
-    frente();
-    break;
-  }
-
-  while(valorMeioE != BRANCO){
-    esquerda();
-    break;
-  }
-
-  while(valorMeioD != BRANCO){
-    direita();
-    break;
-  }
-
-  while (valorMeio == BRANCO && valorMeioE == BRANCO && valorMeioD == BRANCO){
-    frente();
-    break;
-  }
-
-  while (valorMeio != BRANCO && valorMeioE != BRANCO && valorMeioD != BRANCO){
-    frente();
-    break;
-  }
-
-  // || verde2 > 0 && tempoAtual - ultimaDetecaoVerde >= intervaloDetecao
-  if (valorExtremaE != BRANCO){ 
-    pararRobo();
-    delay(300);
-    frente();
-    delay(100);
-    curva90Esquerda();
-    delay(690);
-    frente();
-    delay(100);
-    pararRobo();
-  }
-
-  // || verde > 0 && tempoAtual - ultimaDetecaoVerde >= intervaloDetecao
-  if (valorExtremaD != BRANCO){
-    pararRobo();
-    delay(300);
-    frente();
-    delay(100);
-    curva90Direita();
-    delay(690);
-    frente();
-    delay(100);
-    pararRobo();
-  }
-}
-
-void configurarPinosSensor(int pinS0, int pinS1, int pinS2, int pinS3, int pinOUT) {
-  pinMode(pinS0, OUTPUT);
-  pinMode(pinS1, OUTPUT);
-  pinMode(pinS2, OUTPUT);
-  pinMode(pinS3, OUTPUT);
-  pinMode(pinOUT, INPUT);
-  digitalWrite(pinS0, HIGH);
-  digitalWrite(pinS1, LOW);
-}
-
-void leituraCores(int &v, int pinS0, int pinS1, int pinS2, int pinS3, int pinOUT) {
-  digitalWrite(pinS2, LOW);
-  digitalWrite(pinS3, HIGH); // Define para ler a cor verde
-
-  v = pulseIn(pinOUT, digitalRead(pinOUT) == HIGH ? LOW : HIGH);
+    // delay(1000);
 }
 
 void loop(){
-    // leituraCores(verde, PINO_SENSOR_S0, PINO_SENSOR_S1, PINO_SENSOR_S2, PINO_SENSOR_S3, PINO_SENSOR_OUT);
-    // leituraCores(verde2, PINO_SENSOR_S0_2, PINO_SENSOR_S1_2, PINO_SENSOR_S2_2, PINO_SENSOR_S3_2, PINO_SENSOR_OUT_2);
+    // Iniciar motores como parados
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, LOW);
 
-    // unsigned long tempoAtual = millis();
+    // Ler as cores
+    // leiturasCores(verde_esquerdo, pinS0_e, pinS1_e, pinS2_e, pinS3_e, pinOUT_e);
+    // leiturasCores(verde_direito, pinS0_d, pinS1_d, pinS2_d, pinS3_d, pinOUT_d);
 
-    // autoTrack();
-    frente();
+    // // Imprimir os valores para debug
+    // Serial.println("---------------");
+    // Serial.println(verde_esquerdo);
+    // Serial.println(verde_direito);
+  
+    // Linha
+    autoTrack();
 
-    delay(500);
+    // // Se ambos os sensores detectaram verde
+    // if (verde_esquerdo == 1 && verde_direito == 1) {
+    //     frente(); // Avançar
+    //     delay(200);
+    //     parar();
+    //     delay(1000);
+    // }
+    // // Se apenas o sensor esquerdo detectou verde
+    // if (verde_esquerdo == 1) {
+    //     frente(); // Avançar
+    //     delay(200);
+    //     parar();
+    //     delay(1000);
+    //     eCurva(); // Fazer uma curva para a esquerda
+    //     delay(600);
+    // }
+    // // Se apenas o sensor direito detectou verde
+    // if (verde_direito == 1) {
+    //     frente(); // Avançar
+    //     delay(200);
+    //     parar();
+    //     delay(1000);
+    //     dCurva(); // Fazer uma curva para a direita
+    //     delay(600);
+    // }
 }
