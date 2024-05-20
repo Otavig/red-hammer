@@ -16,9 +16,16 @@
 #define CURVA_ESQUERDA 10
 #define CURVA_DIREITA 14
 
+// distance
+#define pino_trigger A0
+#define pino_echo A1
+
 const int VELOCIDADE_BAIXA = 80;
 const int VELOCIDADE_ALTA = 100;
 const int VELOCIDADE_VIRAR = 140;
+
+// Props
+float distancia_frente = 10;
 
 // Função para mover para frente
 void moverFrente(int velocidade) {
@@ -89,7 +96,7 @@ void grau_curva(int L, int R){
     moverFrente(VELOCIDADE_BAIXA);  
   } else if (L == 0 && R == 1){
     moverFrente(VELOCIDADE_ALTA);
-    delay(700);
+    delay(600);
     virarDireita90(VELOCIDADE_ALTA);
     delay(1000);
     int estado = 1;
@@ -97,6 +104,8 @@ void grau_curva(int L, int R){
     while (estado == 1){
       S_C = digitalRead(SENSOR_MEIO);
       if (S_C == 0){
+        virarDireita90(VELOCIDADE_ALTA);
+        delay(380);
         estado = 0;
         break;
       } else{
@@ -114,6 +123,8 @@ void grau_curva(int L, int R){
     while (estado == 1){
       S_C = digitalRead(SENSOR_MEIO);
       if (S_C == 0){
+        virarEsquerda90(VELOCIDADE_ALTA);
+        delay(380);
         estado = 0;
         break;
       } else{
@@ -127,6 +138,35 @@ void grau_curva(int L, int R){
 
   return;
 }
+
+// void desviar_esquerda(){
+//     pararMovimento();
+//     delay(1000);
+//     virarDireita90(VELOCIDADE_ALTA);
+//     delay(1700);
+//     moverFrente(VELOCIDADE_ALTA);
+//     delay(2000);
+//     virarEsquerda90(VELOCIDADE_ALTA);
+//     delay(1700);
+//     moverFrente(VELOCIDADE_ALTA);
+//     delay(2000);
+//     virarEsquerda90(VELOCIDADE_ALTA);
+//     delay(2000);
+//     int estado = 1;
+//     int S_C;
+//     while (estado == 1){
+//       S_C = digitalRead(SENSOR_MEIO);
+//       if (S_C == 0){
+//         estado = 0;
+//         break;
+//       } else{
+//         moverFrente(VELOCIDADE_ALTA);
+//       }
+
+// }
+// void desviar_direita(){
+
+// }
 
 void setup() {
   Serial.begin(9600);
@@ -145,9 +185,38 @@ void setup() {
   pinMode(SENSOR_DIREITA_BAIXO, INPUT);
   pinMode(SENSOR_ESQUERDA_BAIXO, INPUT);
 
+  // Instalação distancia
+  pinMode(pino_trigger, OUTPUT);
+  pinMode(pino_echo, INPUT);
+
   // Sensores auxiliares para curva do robô
   pinMode(CURVA_ESQUERDA, INPUT);
   pinMode(CURVA_DIREITA, INPUT);
+}
+
+void obstaculo_detect(){
+  long duration;
+  int distancia;
+
+  // Limpa o pino de trigger
+  digitalWrite(pino_trigger, LOW);
+  delayMicroseconds(2);
+
+  // Envia um pulso de 10 microssegundos no pino de trigger
+  digitalWrite(pino_trigger, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(pino_trigger, LOW);
+
+  // Mede o tempo que o pulso levou para retornar (em microssegundos)
+  duration = pulseIn(pino_echo, HIGH);
+
+  // Converte o tempo em microssegundos para centímetros
+  distancia_frente = duration * 0.034 / 2;
+  Serial.println(distancia_frente);
+  
+  // if (distancia_frente <= 8){
+  //   desviar_esquerda();
+  // }
 }
 
 void rastrear(){
@@ -159,8 +228,8 @@ void rastrear(){
   // Sensores baixos
   int S_ESQUERDA_BAIXO = digitalRead(SENSOR_ESQUERDA_BAIXO);
   int S_DIREITA_BAIXO = digitalRead(SENSOR_DIREITA_BAIXO);
-  Serial.println(S_ESQUERDA_BAIXO);
-  Serial.println(S_DIREITA_BAIXO);
+  // Serial.println(S_ESQUERDA_BAIXO);
+  // Serial.println(S_DIREITA_BAIXO);
 
   // Sensores auxiliares
   int S_CURVA_ESQUERDA = digitalRead(CURVA_ESQUERDA);
@@ -192,4 +261,8 @@ void rastrear(){
 
 void loop() {
   rastrear();
+
+  // Verifica obstaculo
+  // distancia_frente = 10;
+  // obstaculo_detect();
 }
