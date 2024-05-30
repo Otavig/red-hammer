@@ -182,7 +182,7 @@ void loop() {
     case FOLLOWING_LINE:
     // Ler os valores dos sensores
         String sensorValues = lerSensores();
-        verificarErro(sensorValues);
+        verificarError(sensorValues);
         calculatePID();
         motorPIDcontrol();
         logicFollowLINE();
