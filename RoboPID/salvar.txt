@@ -1,0 +1,12 @@
+    // Ler os valores dos sensores
+    String sensorValues = lerSensores();
+    verificarErro(sensorValues);
+
+    // Exibir os valores dos sensores em formato binário para depuração
+    Serial.print("Sensor Values: ");
+    Serial.println(sensorValues);
+    Serial.print("Erro: ");
+    Serial.println(erro);
+
+    // Adicionar um pequeno atraso para evitar sobrecarga na comunicação serial
+    delay(500);
