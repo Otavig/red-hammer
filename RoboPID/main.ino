@@ -94,8 +94,8 @@ void moverTras() {
     digitalWrite(IN2, LOW);
     digitalWrite(IN3, HIGH);
     digitalWrite(IN4, LOW);
-    analogWrite(ENA, -leftMotorSpeed);
-    analogWrite(ENB, -ightMotorSpeed);
+    analogWrite(ENA, leftMotorSpeed);
+    analogWrite(ENB, rightMotorSpeed);
 }
 
 void motorTurn(int direction){
