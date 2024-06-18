@@ -10,15 +10,15 @@
 #define ESQUERDA -1
 
 // Definir os pinos dos sensores de linha
-int lineFollowSensor0 = 11;
+int lineFollowSensor0 = 13;
 int lineFollowSensor1 = 39;
 int lineFollowSensor2 = 12;
 int lineFollowSensor3 = 37;
-int lineFollowSensor4 = 13;
+int lineFollowSensor4 = 11;
 
 // Sensores de linha auxiliares
-int CURVA_ESQUERDA = 10;
-int CURVA_DIREITA = 14;
+int CURVA_ESQUERDA = 14;
+int CURVA_DIREITA = 10;
 
 // Array para armazenar os valores dos sensores
 int LFSensor[5] = {0, 0, 0, 0, 0};
@@ -41,32 +41,29 @@ float previousError=0, previousI=0;
 int iniMotorPower = 160;
 int leftMotorSpeed;
 int rightMotorSpeed;
-int adj = 1;
+float adj = 1;
 
 // Velocidades mínimas e máximas dos motores
 int minMotorSpeed = 100;
-int maxMotorSpeed = 180;
+int maxMotorSpeed = 160;
 
 // Função para ler os valores dos sensores de linha
 String lerSensores() {
     String sensorValues = "";
-    LFSensor[0] = digitalRead(lineFollowSensor0);
-    LFSensor[1] = digitalRead(lineFollowSensor1);
-    LFSensor[2] = digitalRead(lineFollowSensor2);
-    LFSensor[3] = digitalRead(lineFollowSensor3);
-    LFSensor[4] = digitalRead(lineFollowSensor4);
     
-    // Inverter os valores dos sensores 1 e 3
-    if (LFSensor[1] == 1) {LFSensor[1] = 0;} else {LFSensor[1] = 1;}
-    if (LFSensor[3] == 1) {LFSensor[3] = 0;} else {LFSensor[3] = 1;}
+    // Lê os valores dos sensores diretamente
+    bool valorSensor0 = digitalRead(lineFollowSensor0);
+    bool valorSensor1 =!digitalRead(lineFollowSensor1); // Inverte o valor lido
+    bool valorSensor2 = digitalRead(lineFollowSensor2);
+    bool valorSensor3 =!digitalRead(lineFollowSensor3); // Inverte o valor lido
+    bool valorSensor4 = digitalRead(lineFollowSensor4);
 
-    for (int i = 0; i < 5; i++) {
-      if (LFSensor[i] == 1){
-        sensorValues += String(0);
-      } else {
-        sensorValues += String(1);
-      }
-    }
+    // Constrói a string de valores
+    sensorValues += valorSensor0? "0" : "1";
+    sensorValues += valorSensor1? "0" : "1"; // Valor já invertido
+    sensorValues += valorSensor2? "0" : "1";
+    sensorValues += valorSensor3? "0" : "1"; // Valor já invertido
+    sensorValues += valorSensor4? "0" : "1";
 
     return sensorValues;
 }
@@ -152,15 +149,15 @@ void motorTurn90(int direction){
         digitalWrite(IN2, HIGH);
         digitalWrite(IN3, HIGH);
         digitalWrite(IN4, LOW);
-        analogWrite(ENA, 140);
-        analogWrite(ENB, 140);
+        analogWrite(ENA, 160);
+        analogWrite(ENB, 160);
     } else {
         digitalWrite(IN1, HIGH);
         digitalWrite(IN2, LOW);
         digitalWrite(IN3, LOW);
         digitalWrite(IN4, HIGH);
-        analogWrite(ENA, 140);
-        analogWrite(ENB, 140);
+        analogWrite(ENA, 160);
+        analogWrite(ENB, 160);
     }
 }
 
@@ -230,16 +227,6 @@ void motorPIDcontrol () {
 }
 
 void logicFollowLINE() {
-    // if (error == 4){ motorTurn(ESQUERDA); } 
-    // else if (error == 3){ motorTurn(ESQUERDA); }
-    // else if (error == 2){ motorTurn(ESQUERDA); }
-    // else if (error == 1){ motorTurn(ESQUERDA); }
-    // else if (error == 0){ moverFrente(); }
-    // else if (error == -1){ motorTurn(DIREITA); }
-    // else if (error == -2){ motorTurn(DIREITA); }
-    // else if (error == -3){ motorTurn(DIREITA); }
-    // else if (error == -4){ motorTurn(DIREITA); }
-
     if (error == 0) {
       moverFrente();
     } else if (error < 0){
@@ -251,8 +238,7 @@ void logicFollowLINE() {
     }
 }
 
-void logicDistance() {
-  if(distancia <= distancia_maxima && distancia > 2){
+void desvio_triangular(){
     roboParar();
     delay(200);
       motorTurn(DIREITA);
@@ -265,14 +251,148 @@ void logicDistance() {
       delay(1000);
       motorTurn(ESQUERDA);
       delay(1000);
-  }
 }
 
-// Função principal que implementa a lógica dos sensores e movimentos
-void logicMoreLines(String sensorValores) {
-    int sens[2];
-    sens[0] = digitalRead(CURVA_ESQUERDA);
-    sens[1] = digitalRead(CURVA_DIREITA);
+void desvio_quadratico(){
+  roboParar();
+  delay(200);
+  moverBackSemPID();
+  delay(300);
+  motorTurn(DIREITA); // Esquerda
+  delay(1300);
+  moverFrenteSemPID();
+  delay(800);
+  motorTurn(ESQUERDA); // Direita
+  delay(1500);
+  moverFrenteSemPID();
+  delay(2300);
+  motorTurn(ESQUERDA);
+  delay(1500);
+  moverFrenteSemPID();
+  delay(800);
+  motorTurn(DIREITA);
+  delay(1500);
+  moverBackSemPID();
+  delay(300);
+}
+
+void desvio_circular(){
+  
+}
+
+void rotinaCor(){
+
+}
+
+void rotinaCorDuplo(){
+
+}
+
+void logicMoreLines()
+{
+    int s1, s2, s3, s4, s5;
+    String valueSensors;
+    
+    int s1new, s2new, s3new, s4new, s5new;
+    String valueSensorsNew;
+
+    // Leitura inicial dos sensores
+    s1 = !digitalRead(CURVA_ESQUERDA);
+    s2 = !digitalRead(lineFollowSensor0);
+    s3 = !digitalRead(lineFollowSensor2);
+    s4 = !digitalRead(lineFollowSensor4);
+    s5 = !digitalRead(CURVA_DIREITA);
+
+    valueSensors = String(s1) + String(s2) + String(s3) + String(s4) + String(s5);
+
+    
+    if (valueSensors == "11111" or valueSensors == "10001"){
+      moverFrenteSemPID();
+      delay(500);  
+
+      // Leitura inicial dos sensores
+      s1new = !digitalRead(CURVA_ESQUERDA);
+      s2new = !digitalRead(lineFollowSensor0);
+      s3new = !digitalRead(lineFollowSensor2);
+      s4new = !digitalRead(lineFollowSensor4);
+      s5new = !digitalRead(CURVA_DIREITA);
+
+      valueSensorsNew = String(s1) + String(s2) + String(s3) + String(s4) + String(s5);
+
+      if (valueSensorsNew != "00000") {
+        return;
+      } else {
+        moverBackSemPID();
+        delay(500);
+      }
+    }
+    
+    if (valueSensors == "00001" or valueSensors == "00011" or valueSensors == "00111"){
+      moverFrenteSemPID();
+      delay(350);  
+
+      // Leitura inicial dos sensores
+      s1new = !digitalRead(CURVA_ESQUERDA);
+      s2new = !digitalRead(lineFollowSensor0);
+      s3new = !digitalRead(lineFollowSensor2);
+      s4new = !digitalRead(lineFollowSensor4);
+      s5new = !digitalRead(CURVA_DIREITA);
+
+      valueSensorsNew = String(s1new) + String(s2new) + String(s3new) + String(s4new) + String(s5new);
+      Serial.println(valueSensorsNew);
+
+      if (valueSensorsNew != "00000") { 
+        Serial.println("IF");
+        return;
+      } else {
+        Serial.println("ELSE"); 
+        moverFrenteSemPID();
+        delay(400);
+        motorTurn90(DIREITA);
+        delay(1000);
+
+        while(digitalRead(lineFollowSensor2) != 0){
+          motorTurn90(DIREITA);
+        }
+      }
+    }
+
+    if (valueSensors == "10000" or valueSensors == "11000" or valueSensors == "11100"){
+      moverFrenteSemPID();
+      delay(350);  
+
+      // Leitura inicial dos sensores
+      s1new = !digitalRead(CURVA_ESQUERDA);
+      s2new = !digitalRead(lineFollowSensor0);
+      s3new = !digitalRead(lineFollowSensor2);
+      s4new = !digitalRead(lineFollowSensor4);
+      s5new = !digitalRead(CURVA_DIREITA);
+
+      valueSensorsNew = String(s1new) + String(s2new) + String(s3new) + String(s4new) + String(s5new);
+      Serial.println(valueSensorsNew);
+
+      if (valueSensorsNew != "00000") {
+        Serial.println("IF");
+        return;
+      } else {
+        Serial.println("ELSE");
+        moverFrenteSemPID();
+        delay(400);
+        motorTurn90(ESQUERDA);
+        delay(1000);
+
+        while(digitalRead(lineFollowSensor2) != 0){
+          motorTurn90(ESQUERDA);
+        }
+      }
+    }
+}
+
+void logicDistance() {
+  if(distancia <= distancia_maxima && distancia > 2){
+    desvio_quadratico();
+  }
+  return;
 }
 
 void setup() {
@@ -312,10 +432,11 @@ void loop() {
     // Ler os valores dos sensores
     String sensorValues = lerSensores();
     verificarError(sensorValues);
+    // Serial.println(sensorValues);
     calculatePID();
     motorPIDcontrol();
+    logicMoreLines();
     logicFollowLINE();
     logicDistance();
-    logicMoreLines(sensorValues);
   }
 }
