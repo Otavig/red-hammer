@@ -347,7 +347,7 @@ void logicMoreLines()
       } else {
         Serial.println("ELSE"); 
         moverFrenteSemPID();
-        delay(400);
+        delay(300);
         motorTurn90(DIREITA);
         delay(1000);
 
@@ -377,7 +377,7 @@ void logicMoreLines()
       } else {
         Serial.println("ELSE");
         moverFrenteSemPID();
-        delay(400);
+        delay(300);
         motorTurn90(ESQUERDA);
         delay(1000);
 
